@@ -1,0 +1,43 @@
+services:
+
+  postgres:
+    platform: ${DOCKER_PLATFORM}
+    container_name: demo-postgres
+    image: "postgres:16"
+    environment:
+      - "POSTGRES_HOST_AUTH_METHOD=trust"
+    volumes:
+      - "./postgresql/init.sql:/docker-entrypoint-initdb.d/init.sql"
+      - "./.volumes/postgresql/data:/var/lib/postgresql/data:delegated"
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    networks:
+      - main
+    healthcheck:
+      test: "CMD-SHELL pg_isready -U postgres"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    platform: ${DOCKER_PLATFORM}
+    container_name: demo-redis
+    build:
+      context: ./redis
+      dockerfile: Dockerfile
+      platforms:
+        - ${DOCKER_PLATFORM}
+    restart: unless-stopped
+    environment:
+      - REDIS_USERNAME=dev
+      - REDIS_PASSWORD=112233
+    ports:
+      - "6379:6379"
+    networks:
+      - main
+
+networks:
+  main:
+    name: demo
+    driver: bridge

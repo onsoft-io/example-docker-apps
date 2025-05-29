@@ -1,0 +1,67 @@
+services:
+
+  nest:
+    platform: ${DOCKER_PLATFORM}
+    container_name: demo-nest
+    image: node:22-alpine
+    init: true
+    working_dir: /app
+    command:
+      - "npm"
+      - "run"
+      - "start:dev"
+    volumes:
+      - "../apps/nest:/app:delegated"
+    env_file:
+      - "../apps/next/.env"
+    ports:
+      - "3000:3000"
+    networks:
+      - main
+    depends_on:
+      - postgres
+      - redis
+
+  next:
+    platform: ${DOCKER_PLATFORM}
+    container_name: demo-next
+    image: node:22-alpine
+    init: true
+    working_dir: /app
+    command:
+      - "npm"
+      - "run"
+      - "dev"
+    volumes:
+      - "../apps/next:/app:delegated"
+    env_file:
+      - "../apps/next/.env"
+    networks:
+      - main
+    ports:
+      - "3001:3000"
+    depends_on:
+      - postgres
+      - redis
+
+  react:
+    platform: ${DOCKER_PLATFORM}
+    container_name: demo-react
+    image: node:22-alpine
+    init: true
+    working_dir: /app
+    command:
+      - "npm"
+      - "run"
+      - "dev"
+    volumes:
+      - "../apps/react:/app:delegated"
+    env_file:
+      - "../apps/react/.env"
+    ports:
+      - "3002:3000"
+    networks:
+      - main
+    depends_on:
+      - postgres
+      - redis

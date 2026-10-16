@@ -5,12 +5,19 @@ ifeq ($(UNAME_S),Linux)
     SED = sed -i
 else ifeq ($(UNAME_S),Darwin)
     SED = sed -i ""
+else ifneq (,$(findstring MINGW,$(UNAME_S)))
+    SED = sed -i
+else ifneq (,$(findstring MSYS,$(UNAME_S)))
+    SED = sed -i
+else ifneq (,$(findstring CYGWIN,$(UNAME_S)))
+    SED = sed -i
 else
     $(error Unsupported OS: $(UNAME_S))
 endif
 
-init-linux: project-env linux-env git-filemode apps-envs apps-install build
-init-mac:   project-env mac-env git-filemode apps-envs apps-install build
+init-linux:   project-env linux-env git-filemode apps-envs apps-install build up
+init-mac:     project-env mac-env git-filemode apps-envs apps-install build up
+init-windows: project-env windows-env git-filemode apps-envs apps-install build up
 
 build:
 	docker compose -f docker-compose.base.yml -f docker-compose.apps.yml -p demo build
@@ -34,10 +41,13 @@ project-env:
 	cp .env.example .env
 
 linux-env:
-	$(SED) 's/DOCKER_PLATFORM=.*/DOCKER_PLATFORM=linux\/amd64/'  .env
+	$(SED) 's|DOCKER_PLATFORM=.*|DOCKER_PLATFORM=linux/amd64|'  .env
 
 mac-env:
-	$(SED) 's/DOCKER_PLATFORM=.*/DOCKER_PLATFORM=linux\/arm64/'  .env
+	$(SED) 's|DOCKER_PLATFORM=.*|DOCKER_PLATFORM=linux/arm64|'  .env
+
+windows-env:
+	$(SED) 's|DOCKER_PLATFORM=.*|DOCKER_PLATFORM=linux/amd64|'  .env
 
 apps-envs:
 	cd ../apps/nest    && cp .env.example .env
@@ -54,6 +64,6 @@ apps-install:
 # ===============
 
 git-filemode:
-	# find ../.git -type f -path "*/config"      -exec $(SED) 's/filemode = true/filemode = false/' {} \;
-	# find ../apps -type f -path "*/.git/config" -exec $(SED) 's/filemode = true/filemode = false/' {} \;
+	find ../.git -type f -path "*/config"      -exec $(SED) 's/filemode = true/filemode = false/' {} \;
+	find ../apps -type f -path "*/.git/config" -exec $(SED) 's/filemode = true/filemode = false/' {} \;
 
